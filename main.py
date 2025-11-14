@@ -1,6 +1,7 @@
 import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import ast
 ukl = "data/movies_metadata.csv"
 
 df = pd.read_csv(ukl)
@@ -36,17 +37,30 @@ df.info()
 df.dropna(inplace=True) # видаляє всі рядки з пропусками
 # print(df.isnull().sum()) # перевіряє наявність пропусків
 df.info() # виводить інформацію про датафрейм
+#-------------------------------------------------------------------------
 
+def extract_genres(genres_str):
+    try:
+        genres = ast.literal_eval(genres_str) # перетворює рядок у список словників
+        return[genre["name"] for genre in genres] # витягує назви жанрів зі списку словників
+    except ValueError:
+        return []  # повертає порожній список у випадку помилки
+# print(extract_genres(df["genres"].value_counts())) # перевіряє роботу функції на унікальних значеннях стовпця genres
+print(df["genres"].apply(extract_genres)) # застосовує функцію до кожного рядка в стовпці genres
+df["genres"] = df["genres"].apply(extract_genres) # замінює значення в стовпці genres на результат функції
+
+#-------------------------------------------------------------------------
 # print(df.head())
-
 # print(df.genres) # виводить стовпець genre
-genres_count = df["genres"].value_counts() # рахує кількість унікальних значень в стовпці genre  
-# print(genres_count)
+genres_count = df["genres"].value_counts() # рахує кількість унікальних значень в стовпці genre
+
+all_genres = df["genres"].explode() # розбиває списки жанрів на окремі рядки
+genres_count = all_genres.value_counts() # рахує кількість унікальних значень в стовпці genre
 
 # print(genres_count.index) # виводить унікальні значення в стовпці genre
 # print(genres_count.values) # виводить кількість унікальних значень в стовпці genre
 
-plt.figure(figsize=(6, 4)) # створює фігуру розміром 6 на 4 дюйми
+plt.figure(figsize=(10, 6)) # створює фігуру розміром 6 на 4 дюйми
 
 sns.barplot(x=genres_count.index, y=genres_count.values)
 
@@ -54,6 +68,6 @@ plt.title("Count filf for genres") # додає заголовок до граф
 plt.xlabel("Genres") # додає підпис до осі x
 plt.ylabel("Genres_count") # додає підпис до осі y
 
-plt.xticks(rotation=45) # повертає підписи осі x на 45 градусів для кращої читабельності
+plt.xticks(rotation=80) # повертає підписи осі x на 45 градусів для кращої читабельності
 
 plt.show()
